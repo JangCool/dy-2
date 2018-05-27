@@ -1,0 +1,4 @@
+urlid localhost
+url jdbc:hsqldb:hsql://localhost/dragon
+username sa
+password

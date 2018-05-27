@@ -1,0 +1,179 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2"
+  }
+}
+
+apply plugin: "org.sonarqube"
+
+
+def deployVersion = '1.8.0'
+
+ext {
+    //배포 환경 설정값을 지정 local,dev,stage 3가지로 구성
+//	env                    = 'local'  
+	env                    = 'dev'  
+//	env                    = 'stage'  
+
+	dyAgentVersion         = "${deployVersion}"
+	dyServerVersion        = "${deployVersion}"
+	dyWasCollectorVersion  = "${deployVersion}"
+	dyDBCollectorVersion   = "${deployVersion}"
+
+	defaultCompileVersion  = '10'
+	commonCompileVersion   = '1.7'
+	agentCompileVersion    = '1.7'
+	dbCompileVersion       = '1.8'
+	
+	version = [
+		slf4j                        : '1.7.25',
+		
+		msgpack                      : '0.8.13',  // msgpack을 받으면 해당 버전을 지원하는 jackson-core jar파일도 내려받는다.
+		junit                        : '5.2.0'
+	]
+	
+}
+
+//전체 프로젝트 인코딩 지정.
+allprojects {
+
+    buildscript {
+        ext {
+            springBootVersion = '2.0.2.RELEASE'
+        }
+        repositories {
+            mavenCentral()
+        }		        
+    }
+
+    apply plugin: "java-library"
+    apply plugin: "eclipse-wtp"
+	
+    //프로젝트별 소스 컴파일 버전을 지정한다.
+    if(project.name == "dy.common"){
+        sourceCompatibility = commonCompileVersion
+        targetCompatibility = commonCompileVersion
+    }else if(project.name == "dy.agent"){
+        sourceCompatibility = agentCompileVersion
+        targetCompatibility = agentCompileVersion
+    }else if(project.name == "dy.db"){
+        sourceCompatibility = dbCompileVersion
+        targetCompatibility = dbCompileVersion
+    }else {
+        sourceCompatibility = defaultCompileVersion
+        targetCompatibility = defaultCompileVersion
+    }
+
+    eclipse{
+
+        wtp {
+            facet {
+
+                file{
+                    whenMerged { wtpFacet ->
+
+                        def facet = wtpFacet.facets.findAll {it.name.startsWith("jst.java")}
+                        def jdkVersion = sourceCompatibility.toString().substring(2).toInteger();
+
+                        facet.each {
+                            it.version = (jdkVersion > 8) ? jdkVersion : sourceCompatibility
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    configurations {
+        all {
+            // 제외 처리 필요한 라이브러리 파일 설정
+//            exclude group: 'commons-logging'
+//            exclude module: 'slf4j-log4j12'
+            resolutionStrategy {
+                // 라이브러리 버전 충돌시 에러 경고
+                failOnVersionConflict()
+                // 모듈 변경 라이브러리 버전(SNAPSHOT) 캐쉬 없음
+                cacheChangingModulesFor 0, 'seconds'
+                // 동적 버전 라이브러리 버전은 10분만 캐쉬
+                cacheDynamicVersionsFor 10 * 60, 'seconds'
+            }
+        }
+    }
+
+
+	repositories {
+  		mavenCentral()
+		jcenter()
+	}
+
+    tasks.withType(Test) {
+       systemProperty "file.encoding", "UTF-8"
+    }
+
+}
+
+subprojects {
+
+	task initSourceFolders {
+	    sourceSets*.java.srcDirs*.each {
+	        if( !it.exists() ) {
+	            it.mkdirs()
+	        }
+	    }
+	 
+	    sourceSets*.resources.srcDirs*.each {
+	        if( !it.exists() ) {
+	            it.mkdirs()
+	        }
+	    }
+	}
+
+    
+
+    // eclipse에서 작업한 class 파일들이 저장될 default output folder를 classes로 변경
+    eclipse {                     
+    
+        classpath {
+            defaultOutputDir = file('build/classes/main')
+
+            file {
+
+                whenMerged { cp ->
+
+                    def mainSrcs = cp.entries.findAll {
+                        it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.startsWith("src/main/")
+                    }
+
+                    mainSrcs.each {
+                        // 멀티 프로젝트에서는 꼭 project.relativePath 로 호출해야 한다.
+                        // 안그러면 Root 프로젝트에 대한 상대경로가 지정됨면서 하위 모듈의 프로젝트이름이 이중으로 들어감.
+                        it.output = project.relativePath("${buildDir}/classes/main")
+                    }
+
+                    def testSrcs = cp.entries.findAll {
+                        it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.startsWith("src/test/")
+                    }
+
+                    testSrcs.each {
+                        // 멀티 프로젝트에서는 꼭 project.relativePath 로 호출해야 한다.
+                        // 안그러면 Root 프로젝트에 대한 상대경로가 지정됨면서 하위 모듈의 프로젝트이름이 이중으로 들어감.
+                        it.output = project.relativePath("${buildDir}/classes/test")
+                        it.exported = false // Deployment Assembly에서 제외
+                    }
+                    // 중복 엔트리 삭제. gradle eclipse를 두 번이상 실행하면 test 관련 디렉토리가 중복 생성된다.
+                    cp.entries.unique()
+                }
+            }
+        }
+	}
+
+    dependencies {
+     //   testImplementation 'org.junit.jupiter:junit-jupiter-api:${rootProject.ext.version.junit}'
+    //	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${rootProject.ext.version.junit}'
+    }
+}

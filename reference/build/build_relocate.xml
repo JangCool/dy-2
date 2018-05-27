@@ -1,0 +1,92 @@
+<project name="." default="relocate">
+    <description>  
+  Simple JAR export.  나중에 패키지 나눌 때 쓸거임.. 문제 생겨서 일단 홀딩..
+ </description>
+	
+    <property name="export.lib" location="../lib" />
+    <!-- package 명을 변경할 jar 파일이 있는 경로 -->
+    <property name="export.dependency" location="../dependency" />
+    <!-- package 명을 변경 한 후 jar 파일 생성 경로 -->
+    <property name="export.exploded.jar" location="exploded/jar" />
+    <!-- 작업 처리된 jar모아놓는 temp 폴더 -->
+	
+    <!-- netty property -->
+    <property name="jar.netty.name" value="netty-all-4.1.6.Final.jar" />
+    <property name="jar.netty.rename" value="dy-${jar.netty.name}" />
+    <property name="jar.netty.pattern.pkg" value="io.netty" />
+    <property name="jar.netty.result.pkg" value="kr.co.pionnet.dependency.${jar.netty.pattern.pkg}" />
+    <property name="jar.netty.pattern" value="${jar.netty.pattern.pkg}.**" />
+    <property name="jar.netty.result" value="${jar.netty.result.pkg}.@1" />
+	
+    <!-- asm property -->
+    <property name="jar.asm.name" value="asm-all-5.0.3.jar" />
+    <property name="jar.asm.rename" value="dy-${jar.asm.name}" />
+    <property name="jar.asm.pattern.pkg" value="org.objectweb.asm" />
+    <property name="jar.asm.result.pkg" value="kr.co.pionnet.dependency.${jar.asm.pattern.pkg}" />
+    <property name="jar.asm.pattern" value="${jar.asm.pattern.pkg}.**" />
+    <property name="jar.asm.result" value="${jar.asm.result.pkg}.@1" />
+	
+    <target name="relocate">
+        <antcall target="asm" />
+        <antcall target="netty" />
+    </target>
+	
+    <target name="asm" description="asm">
+        <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="jarjar-1.4.jar" />
+        <mkdir dir="exploded" />
+        <jarjar destfile="${export.exploded.jar}/${jar.asm.name}">
+            <zipfileset src="${export.lib}/${jar.asm.name}" />
+            <rule pattern="${jar.asm.pattern}" result="${jar.asm.result}" />
+        </jarjar>
+        <!-- package 명이 변경 된 후 exploded 폴더에 jar파일 압축 해제 *repackage 후 남은 빈 폴더를 제거하기 위함. -->
+        <unzip src="${export.exploded.jar}/${jar.asm.name}" dest="exploded/${jar.asm.name}" />
+        <unzip src="${export.lib}/${jar.asm.name}" dest="exploded/${jar.asm.name}">
+            <patternset>
+                <include name="META-INF/**" />
+            </patternset>
+        </unzip>
+        <!--repackage 후 남은 빈 폴더를 제거. -->
+        <copy includeemptydirs="false" todir="unpolluted/${jar.asm.name}">
+            <fileset dir="exploded/${jar.asm.name}" />
+        </copy>
+        <!-- META-INF replace -->
+        <replaceregexp file="unpolluted/${jar.asm.name}/META-INF/MANIFEST.MF" match="${jar.asm.pattern.pkg}" replace="${jar.asm.result.pkg}" byline="true" />
+        <jar destfile="${export.dependency}/${jar.asm.rename}" manifest="unpolluted/${jar.asm.name}/META-INF/MANIFEST.MF">
+            <fileset dir="unpolluted/${jar.asm.name}" />
+        </jar>
+        <antcall target="delete" />
+    </target>
+	
+	
+    <target name="netty" description="netty 패키지 변경">
+        <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="jarjar-1.4.jar" />
+        <mkdir dir="exploded" />
+        <jarjar destfile="${export.exploded.jar}/${jar.netty.name}">
+            <zipfileset src="${export.lib}/${jar.netty.name}" />
+            <rule pattern="${jar.netty.pattern}" result="${jar.netty.result}" />
+        </jarjar>
+        <!-- package 명이 변경 된 후 exploded 폴더에 jar파일 압축 해제 *repackage 후 남은 빈 폴더를 제거하기 위함. -->
+        <unzip src="${export.exploded.jar}/${jar.netty.name}" dest="exploded/${jar.netty.name}" />
+        <unzip src="${export.lib}/${jar.netty.name}" dest="exploded/${jar.netty.name}">
+            <patternset>
+                <include name="META-INF/**" />
+            </patternset>
+        </unzip>
+        <!--repackage 후 남은 빈 폴더를 제거. -->
+        <copy includeemptydirs="false" todir="unpolluted/${jar.netty.name}">
+            <fileset dir="exploded/${jar.netty.name}" />
+        </copy>
+        <!-- META-INF replace -->
+        <replaceregexp file="unpolluted/${jar.netty.name}/META-INF/MANIFEST.MF" match="${jar.netty.pattern.pkg}" replace="${jar.netty.result.pkg}" byline="true" />
+        <jar destfile="${export.dependency}/${jar.netty.rename}" manifest="unpolluted/${jar.netty.name}/META-INF/MANIFEST.MF">
+            <fileset dir="unpolluted/${jar.netty.name}" />
+        </jar>
+        <antcall target="delete" />
+    </target>
+	
+	
+    <target name="delete">
+        <delete dir="exploded" />
+        <delete dir="unpolluted" />
+    </target>
+</project>

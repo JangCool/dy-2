@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.pionnet.dy.dao.SampleDaoTrx">
+ 
+    <insert id="insert" parameterType="map">
+        INSERT INTO 
+            posts (subject,content,created,user_id,user_name,hit)
+        VALUES
+        (#{subject:VARCHAR}, #{content:VARCHAR}, now(), #{user_id:NUMERIC}, #{user_name:VARCHAR}, 0)
+
+    </insert>
+ 
+</mapper>

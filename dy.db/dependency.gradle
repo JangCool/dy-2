@@ -1,0 +1,15 @@
+/*------------------------------------------------------------------------
+                                                                        
+		프로젝트  명  : dy.db                                              
+		설정 파일 명  : dependency.gradle                                     
+		설           명  : dy.db 프로젝트에 필요한 jar 파일을 관리 한다.                     
+                                                                        
+ ------------------------------------------------------------------------*/
+
+ //프로젝트 의존성 라이브러리 추가 및 버전관리를 이곳에서 지정 한다.
+dependencies {
+    // This dependency is exported to consumers, that is to say found on their compile classpath.
+    api project(":dy.common")
+    
+}
+ 

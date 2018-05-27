@@ -1,0 +1,145 @@
+<project name="." default="default">  
+  
+ <description>  
+  Simple JAR export.  
+ </description>  
+  
+ <property name="dy_agent" location="../../dy_agent" />  
+ <property name="export" location="../deploy/output" />  
+ 
+	
+ <target name="dy_common">  
+  <echo>dy_common</echo>
+  <jar destfile="${export}/dy_common.jar">
+   <fileset dir="../target/classes">
+    	
+   </fileset>  
+   
+  </jar>
+ 	
+ 	<antcall target="upload_common"/>
+ </target>
+	
+	 <target name="dy_db">  
+	  <echo>dy_common</echo>
+	  <jar destfile="${export}/dy_db.jar">
+	   <fileset dir="../../dy_db/target/classes">
+	    	
+	   </fileset>  
+	   
+	  </jar>
+
+	 </target>	
+	<target name="dy_collector">  
+	  <echo>dy_collector</echo>
+	  <jar destfile="${export}/dy_collector.jar">
+	   <fileset dir="../../dy_collector/target/classes">	    	
+	   </fileset>  
+	   
+	  </jar>
+		<antcall target="upload_collector"/>
+	 </target> 
+
+
+ <target name="dy_agent">  
+  <echo>dy_agent</echo>
+  <jar destfile="${export}/dy_agent.jar">  
+  		<manifest>
+            <attribute name="Premain-Class" value="kr.co.pionnet.dragon.Agent"/>
+  			<attribute name="Boot-Class-Path" value="dy_agent.jar"/> <!-- agent를 bootclassloader 에 올림 -->  			
+            <attribute name="Can-Redefine-Classes" value="true"/>
+            <attribute name="Can-Retransform-Classes" value="true"/>
+        </manifest>
+   <fileset dir="${dy_agent}/target/classes">  
+    <exclude name="kr/co/pionnet/dragon/external/**" />
+    
+   </fileset>  
+   <fileset dir="${dy_agent}">  
+    <include name="conf/logging.properties" />
+    <include name="conf/dy.boot.conf" />
+    
+   	
+   </fileset>  
+   
+  </jar>
+ 	
+ 	<antcall target="upload_agent"/>
+ </target> 
+ 
+
+ 
+ 
+ <target name="dragon.mock">  
+  <echo>dy_mock</echo>  
+  
+  <jar destfile="${export}/plugin/dragon.mock.jar">  
+   <fileset dir="${dy_agent}/target/classes">  
+    <include name="kr/co/pionnet/dragon/external/**" />    
+   </fileset>  
+  </jar>
+ 	<antcall target="upload_http"/>
+ </target>
+ 
+ <target name="default">
+		<echo>Common Lib</echo>
+ 		<antcall target="dy_agent"/>
+		<antcall target="dy_common"/>
+    	
+ </target>
+	
+	
+	<target name="upload_common" >
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@211.108.23.92:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.101:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.101:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.102:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.103:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.104:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.105:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.106:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.107:/overpass/dy_agent/lib"  trust="true" />			
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.108:/overpass/dy_agent/lib"  trust="true" />  		
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.109:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@10.74.102.110:/overpass/dy_agent/lib"  trust="true" />
+<!--		<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@211.108.23.31:/applications/dy/webapp/WEB-INF/lib"  trust="true" />
+		<scp file="../deploy/output/dy_db.jar" todir="root:pion@1208@211.108.23.31:/applications/dy/webapp/WEB-INF/lib"  trust="true" /> -->
+	</target>	
+	
+	<target name="upload_collector">		    
+				<scp file="../deploy/output/dy_collector.jar" todir="root:pion@1208@211.108.23.31:/applications/dy-collector/lib"  trust="true" />
+				<scp file="../deploy/output/dy_common.jar" todir="root:pion@1208@211.108.23.31:/applications/dy-collector/lib"  trust="true" />
+				<scp file="../deploy/output/dy_db.jar" todir="root:pion@1208@211.108.23.31:/applications/dy-collector/lib"  trust="true" />
+	</target>
+	
+	<target name="upload_agent">
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@211.108.23.92:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.101:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.102:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.103:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.104:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.105:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.106:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.107:/overpass/dy_agent/lib"  trust="true" />			
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.108:/overpass/dy_agent/lib"  trust="true" />  		
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.109:/overpass/dy_agent/lib"  trust="true" />
+		<scp file="../deploy/output/dy_agent.jar" todir="root:pion@1208@10.74.102.110:/overpass/dy_agent/lib"  trust="true" />
+		
+
+	</target>	
+	
+	<target name="upload_http">
+
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.101:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.102:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.103:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.104:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.105:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.106:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.107:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.108:/overpass/dy_agent/lib/plugin"  trust="true" />				
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.109:/overpass/dy_agent/lib/plugin"  trust="true" />
+		<scp file="../deploy/output/plugin/dragon.mock.jar" todir="root:pion@1208@10.74.102.110:/overpass/dy_agent/lib/plugin"  trust="true" /> 
+	</target>
+
+
+</project> 

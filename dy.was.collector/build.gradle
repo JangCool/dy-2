@@ -1,0 +1,96 @@
+/*------------------------------------------------------------------------
+                                                                        
+      	프로젝트  명  : dy.was.collector                                              
+      	설정 파일 명  : build.gradle                                          
+       	설           명  : dy.was.collector  프로젝트에 필요한 환경 변수 설정 및 task를 관리한다                               
+                                                                       
+ ------------------------------------------------------------------------*/
+ 
+buildscript {
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply from: 'dependency.gradle'                  //의존 라이브러리를 읽어오는 설정 파일
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+jar {
+	enabled = false
+}
+
+/*------------------------------------------------------------------------
+ 		description : dy.was.collector 프로젝트 압축
+		archive ext : zip,tar
+ ------------------------------------------------------------------------*/
+
+
+//압축 처리에 필요한 공통 변수.
+def archiveInfo = [
+	baseName 			: "dy-was-collector",
+	destinationDir 		: "../../dy.deploy/applications/${rootProject.ext.env}/${rootProject.dyWasCollectorVersion}",
+	from 				: "applications/${rootProject.ext.env}",
+	libFolder 			: "lib",
+	version             : "${rootProject.ext.dyWasCollectorVersion}"
+]
+
+task zipWASCollector(type : Zip) {
+    //압축 파일 명 지정
+	baseName = "${archiveInfo.baseName}-${archiveInfo.version}"    
+	
+	//압축 파일 저장 위치
+	destinationDir = file("${archiveInfo.destinationDir}")
+	
+	//압출 할 대상 폴더
+	from "${archiveInfo.from}"
+	into "${archiveInfo.baseName}"
+	
+	//deployments 폴더안에 build 된 dy.was.collector.jar 파일을 포함한다.
+	into("${archiveInfo.libFolder}"){
+		from("build/libs") {
+			include "*.jar"
+		}
+	}	
+}
+
+task tarWASCollector(type : Tar) {
+    //압축 파일 명 지정
+	baseName = "${archiveInfo.baseName}-${archiveInfo.version}"    
+	//compression = Compression.GZIP
+	
+	//압축 파일 저장 위치
+	destinationDir = file("${archiveInfo.destinationDir}")
+	
+	//압출 할 대상 폴더
+	from "${archiveInfo.from}"
+	into "${archiveInfo.baseName}"
+	
+	
+	//lib 폴더안에 build 된 dy.was.collector.jar 파일을 포함한다.
+	into("${archiveInfo.libFolder}"){
+		from("build/libs") {
+			include "*.jar"
+		}
+	}		
+}
+
+task outputJarWASCollector(type: Copy, dependsOn : build) {
+    from 'build/libs'
+    into '../../dy.deploy/output'
+    
+    doLast{
+    	println 'Copy dy.was.collector on ../../dy.deploy/output path '    
+    }
+}
+
+//BUILD를 한꺼번에 처리한다.
+task buildWASCollector(dependsOn : [outputJarWASCollector,zipWASCollector,tarWASCollector]){
+
+	doLast{
+		println ""
+		println "BUILD 및 압축 처리 완료 [${archiveInfo.baseName}.zip,${archiveInfo.baseName}.tar.gz]"	
+	}
+}
+

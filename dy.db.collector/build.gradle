@@ -1,0 +1,19 @@
+/*------------------------------------------------------------------------
+                                                                        
+      	프로젝트  명  : dy.db.collector                                              
+      	설정 파일 명  : build.gradle                                          
+       	설           명  : dy.db.collector  프로젝트에 필요한 환경 변수 설정 및 task를 관리한다                               
+                                                                       
+ ------------------------------------------------------------------------*/
+ 
+buildscript {
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply from: 'dependency.gradle'                  //의존 라이브러리를 읽어오는 설정 파일
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+

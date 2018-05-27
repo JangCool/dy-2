@@ -1,0 +1,57 @@
+<project name="." default="default">
+	<description>  
+		Dragon-eye build... 
+	</description>
+	
+    <property name="root" location="D:/project/dy/git/dragon-eye/dy/" />
+    <property name="destination" location="D:/project/dy/git/dragon-eye/dy.deploy/" />
+    <property name="dy_agent" location="${root}/dy.agent" />
+    <property name="dy_db" location="${root}/dy.db" />
+    <property name="export" location="${destination}/output" />
+	
+    <target name="dy_common">
+        <echo>dy_common</echo>
+        <jar destfile="${export}/dy.common.jar">
+            <fileset dir="${root}/dy.common/build/classes/java/main"></fileset>
+        </jar>
+    </target>
+    <target name="dy_db">
+        <echo>dy_db</echo>
+        <jar destfile="${export}/dy\.db.jar">
+            <fileset dir="${dy_db}/build/classes"></fileset>
+        </jar>
+    </target>
+    <target name="dy_agent">
+        <echo>dy_agent</echo>
+        <jar destfile="${export}/dy.agent-1.0.0.jar">
+            <manifest>
+                <attribute name="Premain-Class" value="kr.co.pionnet.dragon.Agent" />
+                <attribute name="Boot-Class-Path" value="dy_agent.jar" />
+                <!-- agent를 bootclassloader 에 올림 -->
+                <attribute name="Can-Redefine-Classes" value="true" />
+                <attribute name="Can-Retransform-Classes" value="true" />
+            </manifest>
+            <fileset dir="${dy_agent}/classes">
+                <exclude name="kr/co/pionnet/dragon/external/**" />
+            </fileset>
+            <fileset dir="${dy_agent}">
+                <include name="conf/logging.properties" />
+                <include name="conf/dy.boot.conf" />
+            </fileset>
+        </jar>
+    </target>
+    <target name="dragon.mock">
+        <echo>dy_mock</echo>
+        <jar destfile="${export}/plugin/dy.mock.jar">
+            <fileset dir="${dy_agent}/classes">
+                <include name="kr/co/pionnet/dragon/external/**" />
+            </fileset>
+        </jar>
+    </target>
+	<target name="default">
+        <echo>Common Lib</echo>
+        <antcall target="dy_agent" />
+        <antcall target="dragon.mock" />
+        <antcall target="dy_common" />
+    </target>
+</project>

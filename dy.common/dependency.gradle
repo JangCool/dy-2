@@ -1,0 +1,17 @@
+/*------------------------------------------------------------------------
+                                                                        
+		프로젝트  명  : dy.common                                              
+		설정 파일 명  : dependency.common                                     
+		설           명  : dy.common 프로젝트에 필요한 jar 파일을 관리 한다.                     
+                                                                        
+ ------------------------------------------------------------------------*/
+
+ //프로젝트 의존성 라이브러리 추가 및 버전관리를 이곳에서 지정 한다.
+dependencies {
+	api "org.msgpack:jackson-dataformat-msgpack:${rootProject.ext.version.msgpack}"
+    api 'com.google.guava:guava:22.0'
+    api 'org.xerial.snappy:snappy-java:1.1.4'
+    api 'org.apache.httpcomponents:httpclient:4.5'
+	api files("../reference/dependency/dy-netty-all-4.1.6.Final.jar")
+	
+}
